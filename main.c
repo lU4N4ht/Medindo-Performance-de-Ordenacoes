@@ -42,18 +42,18 @@ void bubble_sort(int *RM, int n, u64 *comps) {
 void insertion_sort(int *RM, int n, u64 *comps) {
     *comps = 0;   // inicializando o contador de comparações
     for (int i = 1; i < n; i++) {
-        int key = RM[i]; 
+        int key = RM[i];
         int j = i - 1;
         while (j >= 0) {
             (*comps)++;  // incrementando o contador a cada comparação
             if (RM[j] > key) {
-                RM[j + 1] = RM[j]; 
+                RM[j + 1] = RM[j];
                 j--;
             } else {
-                break; 
+                break;
             }
         }
-        RM[j + 1] = key; 
+        RM[j + 1] = key;
     }
 }
 
@@ -64,9 +64,8 @@ static int cmp_int_asc_count(const void *a, const void *b) {
     QSORT_COMPS++;
     int A = *(const int*)a;
     int B = *(const int*)b;
-    return (A > B) - (A < B);   //-1, 0 ou 1
+    return (A > B) - (A < B);
 }
-
 
 void qsort_asc_wrapped(int *RM, int n, u64 *comps) {
     QSORT_COMPS = 0;    // reseta o contador antes de cada execução
@@ -79,7 +78,7 @@ void qsort_asc_wrapped(int *RM, int n, u64 *comps) {
 // cenário de dados: Aleatório
 void gera_vetor_ale(int *RM, int n) {
     for (int i = 0; i < n; i++) {
-        RM[i] = rand() % 10000;     // escolhemos criar RM de 4 dígitos (entre 0 e 9999) para otimizar o processamento
+        RM[i] = rand() % 10000;
     }
 }
 
@@ -99,12 +98,12 @@ void gera_vetor_reverso(int *RM, int n) {
 
 // cenário de dados: Quase ordenado (≈10% de perturbação)
 void gera_vetor_quase(int *RM, int n) {
-    gera_vetor_cres(RM, n);     // gera um vetor crescente
-    int perturb = n / 10;       // 10% de perturbação
+    gera_vetor_cres(RM, n);
+    int perturb = n / 10;
     for (int i = 0; i < perturb; i++) {
-        int a = rand() % n;     // escolhe duas posições aleatórias
+        int a = rand() % n;
         int b = rand() % n;
-        int tmp = RM[a];        // troca os elementos nessas posições
+        int tmp = RM[a];
         RM[a] = RM[b];
         RM[b] = tmp;
     }
@@ -115,20 +114,29 @@ void gera_vetor_quase(int *RM, int n) {
 int main() {
     srand(42);
 
-    // Tamanhos de entrada (n): 1.000, 5.000 e 10.000
     int tamanhos[] = {1000, 5000, 10000};
     int num_tamanhos = sizeof(tamanhos) / sizeof(tamanhos[0]);
-    
-    // Cenários 
+
     enum { ALEATORIO, CRESCENTE, REVERSO, QUASE };
     const char *cenarios[] = {"Aleatório", "Crescente", "Reverso", "Quase Ordenado"};
 
+    // Tabela de resultados em CSV, resultados.csv
+    FILE *f_csv = fopen("resultados.csv", "w");
+    if (!f_csv) {
+        fprintf(stderr, "Erro ao criar o arquivo resultados.csv\n");
+        return 1;
+    }
+
+    // Cabeçalho 
+    fprintf(f_csv, "Tipo de Algoritmo    |    Tamanho da entrada    |    Cenário    |    Tempo de execução (ms)    |    Total de Comparações\n");
+
     for (int t = 0; t < num_tamanhos; t++) {
-        int n = tamanhos[t]; 
-  
+        int n = tamanhos[t];
+
         int *RM = (int*)malloc(n * sizeof(int));
         if (!RM) {
             fprintf(stderr, "Erro de memória: Falha ao alocar vetor base de tamanho %d.\n", n);
+            fclose(f_csv);
             return 1;
         }
 
@@ -148,14 +156,12 @@ int main() {
                     break;
             }
 
-            // Variáveis para armazenar o tempo e as comparações de cada execução 
             u64 comps_bubble, comps_insertion, comps_qsort;
             double tempo_bubble, tempo_insertion, tempo_qsort;
 
-            // Para cada cenário e tamanho, 5 repetições
-            for (int r = 0; r < 5; r++) {   
-                clock_t start, end; 
-                int *vetor_para_algoritmo; 
+            for (int r = 0; r < 5; r++) {
+                clock_t start, end;
+                int *vetor_para_algoritmo;
 
                 // Teste Bubble Sort
                 vetor_para_algoritmo = clone(RM, n);
@@ -163,7 +169,8 @@ int main() {
                 bubble_sort(vetor_para_algoritmo, n, &comps_bubble);
                 end = clock();
                 tempo_bubble = ms(start, end);
-                free(vetor_para_algoritmo); 
+                free(vetor_para_algoritmo);
+                fprintf(f_csv, "Bubble | %d | %s | %d | %.3f| %llu\n", n, cenarios[cenario], r + 1, tempo_bubble, comps_bubble);
 
                 // Teste Insertion Sort
                 vetor_para_algoritmo = clone(RM, n);
@@ -172,26 +179,24 @@ int main() {
                 end = clock();
                 tempo_insertion = ms(start, end);
                 free(vetor_para_algoritmo);
+                fprintf(f_csv, "Insertion | %d | %s | %d | %.3f | %llu\n", n, cenarios[cenario], r + 1, tempo_insertion, comps_insertion);
 
-                // Teste Qsort
+                // Teste qsort
                 vetor_para_algoritmo = clone(RM, n);
                 start = clock();
                 qsort_asc_wrapped(vetor_para_algoritmo, n, &comps_qsort);
                 end = clock();
                 tempo_qsort = ms(start, end);
                 free(vetor_para_algoritmo);
-
-                // Print dos resultados no console
-                printf("Repetição %d - Tamanho %d, Cenario %s\n", r + 1, n, cenarios[cenario]);
-                printf("  Bubble Sort: tempo = %.3f ms, comparacoes = %llu\n", tempo_bubble, comps_bubble);
-                printf("  Insertion Sort: tempo = %.3f ms, comparacoes = %llu\n", tempo_insertion, comps_insertion);
-                printf("  qsort: tempo = %.3f ms, comparacoes = %llu\n\n", tempo_qsort, comps_qsort);
+                fprintf(f_csv, "Qsort | %d | %s | %d | %.3f | %llu\n", n, cenarios[cenario], r + 1, tempo_qsort, comps_qsort);
             }
         }
-        free(RM); // liberação de memória
+        free(RM);
     }
 
-    printf("Todos os testes foram concluídos e os resultados foram impressos no console.\n");
+    // Fecha o arquivo CSV no final da execução
+    fclose(f_csv);
+    printf("Testes concluidos e os resultados foram impressos no console e salvos em 'resultados.csv'\n");
 
-    return 0; 
+    return 0;
 }
