@@ -40,12 +40,12 @@ void bubble_sort(int *RM, int n, u64 *comps) {
 
 // Implementação do Insertion Sort
 void insertion_sort(int *RM, int n, u64 *comps) {
-    *comps = 0;   // inicializando o contador de comparações
+    *comps = 0;     // inicializando o contador de comparações
     for (int i = 1; i < n; i++) {
         int key = RM[i];
         int j = i - 1;
         while (j >= 0) {
-            (*comps)++;  // incrementando o contador a cada comparação
+            (*comps)++;     // incrementando o contador a cada comparação
             if (RM[j] > key) {
                 RM[j + 1] = RM[j];
                 j--;
@@ -68,9 +68,9 @@ static int cmp_int_asc_count(const void *a, const void *b) {
 }
 
 void qsort_asc_wrapped(int *RM, int n, u64 *comps) {
-    QSORT_COMPS = 0;    // reseta o contador antes de cada execução
+    QSORT_COMPS = 0;     // reseta o contador antes de cada execução
     qsort(RM, (size_t)n, sizeof(int), cmp_int_asc_count);
-    *comps = QSORT_COMPS;    // guarda o numero de comparações em *comps
+    *comps = QSORT_COMPS;   // guarda o numero de comparações em *comps
 }
 
 // Geração de Vetores
@@ -96,7 +96,7 @@ void gera_vetor_reverso(int *RM, int n) {
     }
 }
 
-// cenário de dados: Quase ordenado (≈10% de perturbação)
+// cenário de dados: Quase ordenado (com ≈10% de perturbação)
 void gera_vetor_quase(int *RM, int n) {
     gera_vetor_cres(RM, n);
     int perturb = n / 10;
@@ -114,28 +114,28 @@ void gera_vetor_quase(int *RM, int n) {
 int main() {
     srand(42);
 
+    // Tamanhos de entrada (n)
     int tamanhos[] = {1000, 5000, 10000};
     int num_tamanhos = sizeof(tamanhos) / sizeof(tamanhos[0]);
 
     enum { ALEATORIO, CRESCENTE, REVERSO, QUASE };
-    const char *cenarios[] = {"Aleatório", "Crescente", "Reverso", "Quase Ordenado"};
+    const char *cenarios[] = {"Aleatorio", "Crescente", "Reverso", "Quase Ordenado"};
 
-    // Tabela de resultados em CSV, resultados.csv
+     // Tabela de resultados em CSV, resultados.csv
     FILE *f_csv = fopen("resultados.csv", "w");
     if (!f_csv) {
         fprintf(stderr, "Erro ao criar o arquivo resultados.csv\n");
         return 1;
     }
 
-    // Cabeçalho 
-    fprintf(f_csv, "Tipo de Algoritmo    |    Tamanho da entrada    |    Cenário    |    Tempo de execução (ms)    |    Total de Comparações\n");
+     // Cabeçalho 
+    fprintf(f_csv, "Tipo_de_Algoritmo,Tamanho_da_Entrada,Cenario,Numero_de_Repeticoes,Tempo_de_Execucao(ms),Comparacoes\n");
 
     for (int t = 0; t < num_tamanhos; t++) {
         int n = tamanhos[t];
-
         int *RM = (int*)malloc(n * sizeof(int));
         if (!RM) {
-            fprintf(stderr, "Erro de memória: Falha ao alocar vetor base de tamanho %d.\n", n);
+            fprintf(stderr, "Erro de memoria: Falha ao alocar vetor base de tamanho %d.\n", n);
             fclose(f_csv);
             return 1;
         }
@@ -170,7 +170,7 @@ int main() {
                 end = clock();
                 tempo_bubble = ms(start, end);
                 free(vetor_para_algoritmo);
-                fprintf(f_csv, "Bubble | %d | %s | %d | %.3f| %llu\n", n, cenarios[cenario], r + 1, tempo_bubble, comps_bubble);
+                fprintf(f_csv, "Bubble,%d,%s,%d,%.3f,%llu\n", n, cenarios[cenario], r + 1, tempo_bubble, comps_bubble);
 
                 // Teste Insertion Sort
                 vetor_para_algoritmo = clone(RM, n);
@@ -179,7 +179,7 @@ int main() {
                 end = clock();
                 tempo_insertion = ms(start, end);
                 free(vetor_para_algoritmo);
-                fprintf(f_csv, "Insertion | %d | %s | %d | %.3f | %llu\n", n, cenarios[cenario], r + 1, tempo_insertion, comps_insertion);
+                fprintf(f_csv, "Insertion,%d,%s,%d,%.3f,%llu\n", n, cenarios[cenario], r + 1, tempo_insertion, comps_insertion);
 
                 // Teste qsort
                 vetor_para_algoritmo = clone(RM, n);
@@ -188,7 +188,7 @@ int main() {
                 end = clock();
                 tempo_qsort = ms(start, end);
                 free(vetor_para_algoritmo);
-                fprintf(f_csv, "Qsort | %d | %s | %d | %.3f | %llu\n", n, cenarios[cenario], r + 1, tempo_qsort, comps_qsort);
+                fprintf(f_csv, "Qsort,%d,%s,%d,%.3f,%llu\n", n, cenarios[cenario], r + 1, tempo_qsort, comps_qsort);
             }
         }
         free(RM);
@@ -196,7 +196,7 @@ int main() {
 
     // Fecha o arquivo CSV no final da execução
     fclose(f_csv);
-    printf("Testes concluidos e os resultados foram impressos no console e salvos em 'resultados.csv'\n");
+    printf("Testes concluidos e os resultados foram salvos em 'resultados.csv'\n");
 
     return 0;
 }
